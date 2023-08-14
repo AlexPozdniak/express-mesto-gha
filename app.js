@@ -12,9 +12,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   req.user = {
-  _id: '64da8beac540897f04c68625' 
-};
-next();
+    _id: '64da8beac540897f04c68625'
+  };
+  next();
 });
 
 app.use(router);
