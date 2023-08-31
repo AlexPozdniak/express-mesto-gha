@@ -1,12 +1,12 @@
-const cardSchema = require("../models/card");
-const Forbidden = require("../errors/forbidden");
-const NotFound = require("../errors/notFound");
-const BadRequest = require("../errors/badRequest");
+const cardSchema = require('../models/card');
+const Forbidden = require('../errors/forbidden');
+const NotFound = require('../errors/notFound');
+const BadRequest = require('../errors/badRequest');
 
 module.exports.getAllCards = (req, res, next) => {
   cardSchema
     .find({})
-    .populate(["owner", "likes"])
+    .populate(['owner', 'likes'])
     .then((cards) => {
       res.send(cards);
     })
@@ -32,21 +32,21 @@ module.exports.deleteCard = (req, res, next) => {
     .findById({ _id: cardId })
     .then((card) => {
       if (!card) {
-        throw new NotFound("Карточка с данным _id не найдена");
+        throw new NotFound('Карточка с данным _id не найдена');
       }
       if (!card.owner.equals(req.user._id)) {
-        throw new Forbidden("Доступ запрещен");
+        throw new Forbidden('Доступ запрещен');
       }
       card
         .deleteOne()
-        .then(() => res.status(200).send({ message: "Карточка удалена." }))
+        .then(() => res.status(200).send({ message: 'Карточка удалена.' }))
         .catch((error) => {
           next(error);
         });
     })
     .catch((error) => {
-      if (error.name === "CastError") {
-        next(new BadRequest("Неверный id"));
+      if (error.name === 'CastError') {
+        next(new BadRequest('Неверный id'));
       } else {
         next(error);
       }
@@ -61,7 +61,7 @@ module.exports.likeCard = (req, res, next) => {
     .findByIdAndUpdate(cardId, { $pull: { likes: id } }, { new: true })
     .then((card) => {
       if (!card) {
-        throw new NotFound("Карточка с данным _id не найдена");
+        throw new NotFound('Карточка с данным _id не найдена');
       }
       res.send(card);
     })
@@ -76,7 +76,7 @@ module.exports.dislikeCard = (req, res, next) => {
     .findByIdAndUpdate(cardId, { $pull: { likes: id } }, { new: true })
     .then((card) => {
       if (!card) {
-        throw new NotFound("Карточка с данным _id не найдена");
+        throw new NotFound('Карточка с данным _id не найдена');
       }
       res.send(card);
     })
