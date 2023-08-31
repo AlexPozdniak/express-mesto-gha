@@ -1,48 +1,66 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { celebrate, Joi, errors } = require('celebrate');
+const { errors, celebrate, Joi } = require('celebrate');
 const bodyParser = require('body-parser');
+const helmet = require('helmet');
 const router = require('./routes');
-const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
-const defaultError = require('./errors/defaultError');
-const { urlValidation } = require('./middlewares/validation');
-const { requestLogger, errorLogger } = require('./middlewares/logger');
-const cors = require('./middlewares/cors');
+const defaultErr = require('./errors/defaultErr');
+const NotFound = require('./errors/notFound');
+const { login, addUser } = require('./controllers/users');
+const { REGEXP } = require('./middlewares/validation');
 
-const { PORT = 3000 } = process.env;
 const app = express();
 
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
-app.use(bodyParser.json());
+app.use(helmet());
+
+app.use(express.json());
+
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(requestLogger);
-app.use(cors);
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
-  }, 0);
-});
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  })
-}), login);
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(urlValidation),
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  })
-}), createUser);
+
+app.post(
+  '/signin',
+  celebrate({
+    body: Joi.object()
+      .keys({
+        email: Joi.string().required().email(),
+        password: Joi.string().required(),
+      })
+      .unknown(true),
+  }),
+  login
+);
+
+app.post(
+  '/signup',
+  celebrate({
+    body: Joi.object()
+      .keys({
+        name: Joi.string().min(2).max(30),
+        about: Joi.string().min(2).max(30),
+        avatar: Joi.string().regex(REGEXP),
+        email: Joi.string().required().email(),
+        password: Joi.string().required(),
+      })
+      .unknown(true),
+  }),
+  addUser
+);
+
 app.use(auth);
+
 app.use(router);
-app.use(errorLogger);
+
 app.use(errors());
-app.use(defaultError);
-app.listen(PORT, () => {
-  console.log('Сервер запущен');
+
+app.use((req, res, next) => {
+  next(new NotFound('Порта не существует'));
+});
+
+app.use(defaultErr);
+
+mongoose.connect('mongodb://localhost:27017/mestodb');
+
+app.listen(3000, () => {
+  console.log('server started on port 3000');
 });

@@ -1,11 +1,10 @@
 const express = require('express');
-const userRouter = require('./users');
-const cardRouter = require('./cards');
-const NotFoundError = require('../errors/notFound');
+const usersRouter = require('./users');
+const cardsRouter = require('./cards');
 
 const router = express.Router();
-router.use('/users', userRouter);
-router.use('/cards', cardRouter);
-router.use('*', (req, res, next) => next(new NotFoundError('Страница не найдена')));
+
+router.use('/users', usersRouter);
+router.use('/cards', cardsRouter);
 
 module.exports = router;
