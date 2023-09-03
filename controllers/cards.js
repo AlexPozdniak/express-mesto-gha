@@ -6,7 +6,6 @@ const BadRequest = require('../errors/badRequest');
 module.exports.getAllCards = (req, res, next) => {
   cardSchema
     .find({})
-    .populate(['owner', 'likes'])
     .then((cards) => {
       res.send(cards);
     })
@@ -22,7 +21,13 @@ module.exports.addCard = (req, res, next) => {
     .then((card) => {
       res.status(201).send(card);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest('переданы некорректные данные карточки'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.deleteCard = (req, res, next) => {
@@ -65,7 +70,13 @@ module.exports.likeCard = (req, res, next) => {
       }
       res.send(card);
     })
-    .catch(next);
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        next(new BadRequest('Неверный id'));
+      } else {
+        next(error);
+      }
+    });
 };
 
 module.exports.dislikeCard = (req, res, next) => {
@@ -80,5 +91,11 @@ module.exports.dislikeCard = (req, res, next) => {
       }
       res.send(card);
     })
-    .catch(next);
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        next(new BadRequest('Неверный id'));
+      } else {
+        next(error);
+      }
+    });
 };

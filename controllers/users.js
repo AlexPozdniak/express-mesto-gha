@@ -7,6 +7,7 @@ const { сreated } = require('../errors/errorCodes');
 const Conflict = require('../errors/conflict');
 const NotFound = require('../errors/notFound');
 const Unauthorized = require('../errors/unauthorized');
+const BadRequest = require('../errors/badRequest');
 
 module.exports.getAllUsers = (req, res, next) => {
   userSchema
@@ -28,7 +29,13 @@ module.exports.getUserById = (req, res, next) => {
       }
       return res.send(user);
     })
-    .catch(next);
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        next(new BadRequest('Неверный id'));
+      } else {
+        next(error);
+      }
+    });
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
@@ -62,9 +69,13 @@ module.exports.addUser = (req, res, next) => {
       avatar: user.avatar,
       _id: user._id,
     }))
-    .catch((error) => {
-      if (error.code === 11000) {
-        next(new Conflict('Такой пользователь уже существует'));
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(new Conflict('Пользователь с таким email уже существует'));
+      } else if (err.name === 'ValidationError') {
+        next(new BadRequest('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
     });
 };
@@ -80,7 +91,7 @@ module.exports.login = (req, res, next) => {
       return bcrypt.compare(password, user.password)
         .then((match) => {
           if (!match) {
-            next(new Unauthorized('Не правильно указан логин или пароль'));
+            throw new Unauthorized('Не правильно указан логин или пароль');
           }
           const token = jwt.sign(
             { _id: user._id },
@@ -104,12 +115,18 @@ module.exports.editProfile = (req, res, next) => {
       }
       return res.send(user);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest('Передан некорректный id'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.editAvatar = (req, res, next) => {
   const id = req.user._id;
-  const avatar = req.body;
+  const { avatar } = req.body;
 
   userSchema.findByIdAndUpdate(id, avatar, { new: true, runValidators: true })
     .then((user) => {
@@ -118,5 +135,11 @@ module.exports.editAvatar = (req, res, next) => {
       }
       return res.send(user);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequest('Передан некорректный id'));
+      } else {
+        next(err);
+      }
+    });
 };
