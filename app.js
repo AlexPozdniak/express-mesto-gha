@@ -54,7 +54,7 @@ app.use(router);
 app.use(errors());
 
 app.use((req, res, next) => {
-  next(new NotFound('Порта не существует'));
+  next(new NotFound('Порта не существует')); // 'Неверный запрос'
 });
 
 app.use(defaultErr);

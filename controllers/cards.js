@@ -5,9 +5,11 @@ const BadRequest = require('../errors/badRequest');
 
 module.exports.getAllCards = (req, res, next) => {
   cardSchema
-    .find({})
+    /*.find({})*/
+    .find()
     .then((cards) => {
-      res.send(cards);
+      /*res.send(cards);*/
+      return res.status(200).send(cards)
     })
     .catch(next);
 };
@@ -22,7 +24,7 @@ module.exports.addCard = (req, res, next) => {
       res.status(201).send(card);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         next(new BadRequest('переданы некорректные данные карточки'));
       } else {
         next(err);
@@ -65,17 +67,22 @@ module.exports.likeCard = (req, res, next) => {
   cardSchema
     .findByIdAndUpdate(cardId, { $pull: { likes: id } }, { new: true })
     .then((card) => {
-      if (!card) {
+      /*if (!card) {
         throw new NotFound('Карточка с данным _id не найдена');
-      }
+        По идее в then мы попадаем если карточка найдена. Лишняя проверка
+      }*/
       res.send(card);
     })
     .catch((error) => {
+      if (error.name === 'DocumentNotFoundError') {
+        next(new NotFound('Карточка не найдена'));
+      }
       if (error.name === 'CastError') {
         next(new BadRequest('Неверный id'));
-      } else {
+      } /*else {
         next(error);
-      }
+      }*/
+      next(error);
     });
 };
 

@@ -1,5 +1,5 @@
 const STATUS_CODE = {
-  сreated: 201,
+  created: 201,
   badRequest: 400,
   unauthorized: 401,
   forbidden: 403,

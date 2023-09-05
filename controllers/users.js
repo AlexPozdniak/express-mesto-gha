@@ -92,6 +92,9 @@ module.exports.login = (req, res, next) => {
         .then((match) => {
           if (!match) {
             throw new Unauthorized('Не правильно указан логин или пароль');
+            /* либо
+              return next(new Unauthorized('Не правильно указан логин или пароль'))
+            */
           }
           const token = jwt.sign(
             { _id: user._id },
@@ -116,7 +119,7 @@ module.exports.editProfile = (req, res, next) => {
       return res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (e.name === 'CastError' || err.name === 'ValidationError') {
         next(new BadRequest('Передан некорректный id'));
       } else {
         next(err);
@@ -127,8 +130,10 @@ module.exports.editProfile = (req, res, next) => {
 module.exports.editAvatar = (req, res, next) => {
   const id = req.user._id;
   const { avatar } = req.body;
-
-  userSchema.findByIdAndUpdate(id, avatar, { new: true, runValidators: true })
+  /* Если не ошибаюсь - второй аргумент должен быть объект
+  * https://mongoosejs.com/docs/api/model.html#Model.findByIdAndUpdate()*/
+  userSchema.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
+  /*userSchema.findByIdAndUpdate(id, avatar, { new: true, runValidators: true })*/
     .then((user) => {
       if (!user) {
         throw new NotFound('Пользователь по данному _id не найден');
@@ -136,8 +141,8 @@ module.exports.editAvatar = (req, res, next) => {
       return res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest('Передан некорректный id'));
+      if (e.name === 'CastError' ||err.name === 'ValidationError') {
+        next(new BadRequest('Передан некорректный id')); // Переданы некорректные данные
       } else {
         next(err);
       }
