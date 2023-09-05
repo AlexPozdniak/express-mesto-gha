@@ -59,7 +59,7 @@ module.exports.addUser = (req, res, next) => {
 
   bcrypt.hash(password, 10)
     .then((hash) => userSchema
-      .create({
+      .created({
         name, about, avatar, email, password: hash
       }))
     .then((user) => res.status(сreated).send({
@@ -120,7 +120,7 @@ module.exports.editProfile = (req, res, next) => {
     })
     .catch((err) => {
       if (e.name === 'CastError' || err.name === 'ValidationError') {
-        next(new BadRequest('Передан некорректный id'));
+        next(new BadRequest('Переданы некорректные данные'));
       } else {
         next(err);
       }
@@ -142,7 +142,7 @@ module.exports.editAvatar = (req, res, next) => {
     })
     .catch((err) => {
       if (e.name === 'CastError' ||err.name === 'ValidationError') {
-        next(new BadRequest('Передан некорректный id')); // Переданы некорректные данные
+        next(new BadRequest('Переданы некорректные данные')); // Переданы некорректные данные
       } else {
         next(err);
       }
