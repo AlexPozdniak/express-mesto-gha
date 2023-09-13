@@ -9,6 +9,8 @@ const NotFound = require('../errors/notFound');
 const Unauthorized = require('../errors/unauthorized');
 const BadRequest = require('../errors/badRequest');
 
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 module.exports.getAllUsers = (req, res, next) => {
   userSchema
     .find({})
@@ -95,8 +97,8 @@ module.exports.login = (req, res, next) => {
           }
           const token = jwt.sign(
             { _id: user._id },
-            'super-secret-key',
-            { expiresIn: '7d' },
+            NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+            { expiresIn: '7d' }
           );
           return res.send({ token });
         });
